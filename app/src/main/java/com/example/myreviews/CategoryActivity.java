@@ -187,7 +187,7 @@ public class CategoryActivity extends AppCompatActivity {
     private void loadProducts() {
         products.clear();
 
-        try (Cursor cursor = databaseHelper.getProducts(categoryId, productSortOrder)git --version) {
+        try (Cursor cursor = databaseHelper.getProducts(categoryId, productSortOrder)) {
             while (cursor.moveToNext()) {
                 long id = cursor.getLong(
                         cursor.getColumnIndexOrThrow("id"));
