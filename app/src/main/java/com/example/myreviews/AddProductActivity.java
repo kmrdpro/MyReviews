@@ -5,14 +5,24 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
+import android.app.Dialog;
+import android.graphics.Color;
+import android.view.Window;
+import android.view.WindowManager;
+
+import com.github.chrisbanes.photoview.PhotoView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import android.database.Cursor;
 
@@ -43,6 +53,56 @@ public class AddProductActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_product);
 
+        android.widget.ScrollView scrollView =
+                findViewById(R.id.scrollViewProduct);
+
+        final int initialScrollLeft = scrollView.getPaddingLeft();
+        final int initialScrollTop = scrollView.getPaddingTop();
+        final int initialScrollRight = scrollView.getPaddingRight();
+        final int initialScrollBottom = scrollView.getPaddingBottom();
+
+        ViewCompat.setOnApplyWindowInsetsListener(scrollView, (view, windowInsets) -> {
+            Insets systemBars = windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+            );
+
+            Insets ime = windowInsets.getInsets(
+                    WindowInsetsCompat.Type.ime()
+            );
+
+            view.setPadding(
+                    initialScrollLeft + systemBars.left,
+                    initialScrollTop + systemBars.top,
+                    initialScrollRight + systemBars.right,
+                    initialScrollBottom + Math.max(systemBars.bottom, ime.bottom)
+            );
+
+            return windowInsets;
+        });
+
+
+//        View root = findViewById(R.id.product_main);
+
+//        int initialLeft = root.getPaddingLeft();
+//        int initialTop = root.getPaddingTop();
+//        int initialRight = root.getPaddingRight();
+//        int initialBottom = root.getPaddingBottom();
+
+//        ViewCompat.setOnApplyWindowInsetsListener(root, (view, windowInsets) -> {
+//            Insets insets = windowInsets.getInsets(
+//                    WindowInsetsCompat.Type.systemBars()
+//            );
+//
+//            view.setPadding(
+//                    initialLeft + insets.left,
+//                    initialTop + insets.top,
+//                    initialRight + insets.right,
+//                    initialBottom + insets.bottom
+//            );
+//
+//            return windowInsets;
+//        });
+
         categoryId = getIntent().getLongExtra("category_id", -1);
         productId = getIntent().getLongExtra("product_id", -1);
 
@@ -60,8 +120,57 @@ public class AddProductActivity extends AppCompatActivity {
         etReview = findViewById(R.id.etReview);
         ivProductPhoto = findViewById(R.id.ivProductPhoto);
 
+
+
+        final View rootView = findViewById(android.R.id.content);
+
+        rootView.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            android.graphics.Rect visibleRect =
+                    new android.graphics.Rect();
+
+            rootView.getWindowVisibleDisplayFrame(visibleRect);
+
+            int screenHeight = rootView.getRootView().getHeight();
+            int visibleHeight = visibleRect.height();
+
+            boolean keyboardVisible =
+                    screenHeight - visibleHeight > screenHeight * 0.20;
+
+            if (keyboardVisible && etReview.hasFocus()) {
+                rootView.postDelayed(() -> {
+                    android.graphics.Rect fieldRect =
+                            new android.graphics.Rect();
+
+                    etReview.getGlobalVisibleRect(fieldRect);
+
+                    if (fieldRect.bottom > visibleRect.bottom
+                            || fieldRect.top > visibleRect.bottom) {
+                        scrollView.smoothScrollBy(
+                                0,
+                                etReview.getHeight() + 40
+                        );
+                    }
+                }, 100);
+            }
+        });
+
+
+        ivProductPhoto.setOnClickListener(v -> showPhotoFullScreen());
+
         Button btnChoosePhoto = findViewById(R.id.btnChoosePhoto);
         btnSaveProduct = findViewById(R.id.btnSaveProduct);
+
+        Button btnDeleteProduct = findViewById(R.id.btnDeleteProduct);
+
+        if (productId == -1) {
+            // Создаём новый товар — удалять пока нечего.
+            btnDeleteProduct.setVisibility(View.GONE);
+        } else {
+            // Редактируем существующий товар.
+            btnDeleteProduct.setVisibility(View.VISIBLE);
+
+            btnDeleteProduct.setOnClickListener(v -> confirmDeleteProduct());
+        }
 
         photoPicker = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
@@ -118,14 +227,20 @@ public class AddProductActivity extends AppCompatActivity {
 
                 originalPhotoPath = photoPath;
 
-                if (photoPath != null && !photoPath.isEmpty()) {
+                if (photoPath != null && !photoPath.trim().isEmpty()) {
                     File photoFile = new File(photoPath);
 
-                    if (photoFile.exists()) {
-                        ivProductPhoto.setImageURI(
-                                Uri.fromFile(photoFile)
+                    if (photoFile.isFile()) {
+                        ivProductPhoto.setImageURI(Uri.fromFile(photoFile));
+                    } else {
+                        ivProductPhoto.setImageResource(
+                                R.drawable.ic_photo_placeholder
                         );
                     }
+                } else {
+                    ivProductPhoto.setImageResource(
+                            R.drawable.ic_photo_placeholder
+                    );
                 }
             } else {
                 Toast.makeText(this, "Товар не найден",
@@ -173,6 +288,84 @@ public class AddProductActivity extends AppCompatActivity {
             return null;
         }
     }
+
+
+    private void confirmDeleteProduct() {
+        new AlertDialog.Builder(this)
+                .setTitle("Удалить товар?")
+                .setMessage("Товар и его фотография будут удалены.")
+                .setPositiveButton("Удалить", (dialog, which) -> {
+
+                    // 1. Сначала узнаём путь к фотографии.
+                    String savedPhotoPath = null;
+
+                    Cursor cursor = databaseHelper.getReadableDatabase().query(
+                            "products",
+                            new String[]{"photo_path"},
+                            "id = ?",
+                            new String[]{String.valueOf(productId)},
+                            null,
+                            null,
+                            null
+                    );
+
+                    try {
+                        if (cursor.moveToFirst()) {
+                            savedPhotoPath = cursor.getString(
+                                    cursor.getColumnIndexOrThrow("photo_path")
+                            );
+                        }
+                    } finally {
+                        cursor.close();
+                    }
+
+                    // 2. Удаляем товар из SQLite.
+                    int deleted = databaseHelper.getWritableDatabase().delete(
+                            "products",
+                            "id = ?",
+                            new String[]{String.valueOf(productId)}
+                    );
+
+                    if (deleted > 0) {
+
+                        // 3. Удаляем файл фотографии, если он существует.
+                        if (savedPhotoPath != null
+                                && !savedPhotoPath.trim().isEmpty()) {
+
+                            File photoFile = new File(savedPhotoPath);
+
+                            if (photoFile.isFile() && !photoFile.delete()) {
+                                Toast.makeText(
+                                        this,
+                                        "Товар удалён, но фотографию удалить не удалось",
+                                        Toast.LENGTH_LONG
+                                ).show();
+                            }
+                        }
+
+                        // 4. Возвращаемся к списку товаров.
+                        if (!isFinishing()) {
+                            Toast.makeText(
+                                    this,
+                                    "Товар удалён",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+
+                            finish();
+                        }
+
+                    } else {
+                        Toast.makeText(
+                                this,
+                                "Не удалось удалить товар",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                })
+                .setNegativeButton("Нет", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
 
     private void saveProduct() {
         String name = etProductName.getText().toString().trim();
@@ -248,6 +441,50 @@ public class AddProductActivity extends AppCompatActivity {
 
         if (databaseHelper != null) {
             databaseHelper.close();
+        }
+    }
+
+    private void showPhotoFullScreen() {
+        if (photoPath == null || photoPath.isEmpty()) {
+            Toast.makeText(
+                    this,
+                    "Фотография ещё не выбрана",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        File photoFile = new File(photoPath);
+
+        if (!photoFile.exists()) {
+            Toast.makeText(
+                    this,
+                    "Файл фотографии не найден",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        Dialog dialog = new Dialog(
+                this,
+                android.R.style.Theme_Black_NoTitleBar_Fullscreen
+        );
+
+        PhotoView photoView = new PhotoView(this);
+        photoView.setBackgroundColor(Color.BLACK);
+        photoView.setImageURI(Uri.fromFile(photoFile));
+
+        dialog.setContentView(photoView);
+        dialog.show();
+
+        Window window = dialog.getWindow();
+
+        if (window != null) {
+            window.setLayout(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT
+            );
+            window.setBackgroundDrawableResource(android.R.color.black);
         }
     }
 }

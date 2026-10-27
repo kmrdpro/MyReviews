@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/category_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -15,19 +16,21 @@
         android:textSize="26sp"
         android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/btnAddProduct"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Добавить товар" />
-
 
     <Button
         android:id="@+id/btnSortProducts"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Сортировка товаров" />
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_gravity="end"
+        android:layout_marginTop="14dp"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="⇅ Сортировка"
+        android:textAllCaps="false"
+        android:textSize="13sp" />
+
 
 
     <ListView
@@ -37,5 +40,24 @@
         android:layout_weight="1"
         android:layout_marginTop="12dp"
         android:dividerHeight="1dp" />
+
+
+    <Button
+        android:id="@+id/btnAddProduct"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="end"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:padding="0dp"
+        android:text="+"
+        android:textSize="32sp"
+        android:textAllCaps="false"
+        android:background="@drawable/add_button_background"
+        android:backgroundTint="@null"
+        android:textColor="#34234F" />
+
 
 </LinearLayout>

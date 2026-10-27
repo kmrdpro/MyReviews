@@ -1,33 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="88dp"
+    android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:padding="8dp">
+    android:padding="10dp"
+    android:background="@drawable/product_card_background">
 
     <ImageView
         android:id="@+id/ivProductThumbnail"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="76dp"
+        android:layout_height="76dp"
         android:scaleType="centerCrop"
-        android:contentDescription="Фото товара" />
+        android:contentDescription="Фото товара"
+        android:background="#39343F" />
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:paddingStart="12dp">
+        android:layout_marginStart="14dp">
 
         <TextView
             android:id="@+id/tvProductName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Название товара"
-            android:textSize="16sp"
+            android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#212121"
+            android:textColor="#F3EFF7"
             android:maxLines="2"
             android:ellipsize="end" />
 
@@ -35,10 +37,19 @@
             android:id="@+id/tvProductRating"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
             android:text="Оценка: 7/10"
-            android:textColor="#424242"
-            android:textSize="14sp"
-            android:layout_marginTop="4dp" />
+            android:textColor="#F6C86A"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/ratingBar"
+            android:layout_width="match_parent"
+            android:layout_height="5dp"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:weightSum="10" />
 
     </LinearLayout>
 

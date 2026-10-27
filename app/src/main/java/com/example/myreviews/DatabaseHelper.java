@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "myreviews.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -29,7 +29,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(
                 "CREATE TABLE categories (" +
                         "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                        "name TEXT NOT NULL COLLATE NOCASE UNIQUE)"
+                        "name TEXT NOT NULL COLLATE NOCASE UNIQUE, " +
+                        "icon TEXT NOT NULL DEFAULT '🛒')"
         );
 
         db.execSQL(
@@ -53,17 +54,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             int oldVersion,
             int newVersion
     ) {
-        // Миграции структуры базы добавим по мере развития приложения.
+        if (oldVersion < 2) {
+            db.execSQL(
+                    "ALTER TABLE categories " +
+                            "ADD COLUMN icon TEXT NOT NULL DEFAULT '🛒'"
+            );
+        }
     }
 
-    public long addCategory(String name) {
+
+    public long addCategory(String name, String icon) {
         SQLiteDatabase db = getWritableDatabase();
 
         ContentValues values = new ContentValues();
         values.put("name", name.trim());
+        values.put("icon", icon);
 
         return db.insert("categories", null, values);
     }
+
 
 
     public Cursor getCategories(String sortOrder) {
@@ -79,7 +88,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return db.query(
                 "categories",
-                new String[]{"id", "name"},
+                new String[]{"id", "name", "icon"},
                 null,
                 null,
                 null,
@@ -221,5 +230,42 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new String[]{String.valueOf(categoryId)}
         );
     }
+
+
+    public int updateCategory(
+            long categoryId,
+            String newName,
+            String icon
+    ) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put("name", newName.trim());
+        values.put("icon", icon);
+
+        return db.update(
+                "categories",
+                values,
+                "id = ?",
+                new String[]{String.valueOf(categoryId)}
+        );
+    }
+
+
+
+    public Cursor getAllPhotoPaths() {
+        SQLiteDatabase db = getReadableDatabase();
+
+        return db.query(
+                "products",
+                new String[]{"photo_path"},
+                "photo_path IS NOT NULL AND photo_path != ''",
+                null,
+                null,
+                null,
+                null
+        );
+    }
+
 
 }

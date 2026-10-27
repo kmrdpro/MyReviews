@@ -9,6 +9,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.database.sqlite.SQLiteDatabase;
+
+import android.view.View;
+
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import android.app.AlertDialog;
 import java.io.File;
@@ -21,7 +28,9 @@ public class MainActivity extends AppCompatActivity {
 
     private ArrayList<String> categories;
     private ArrayList<Long> categoryIds;
-    private ArrayAdapter<String> adapter;
+    private ArrayList<String> categoryIcons;
+    private CategoryAdapter adapter;
+    private ArrayList<Integer> productCounts;
     private DatabaseHelper databaseHelper;
     private String categorySortOrder = "alphabet";
 
@@ -30,11 +39,35 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        View root = findViewById(R.id.main);
+
+        int initialLeft = root.getPaddingLeft();
+        int initialTop = root.getPaddingTop();
+        int initialRight = root.getPaddingRight();
+        int initialBottom = root.getPaddingBottom();
+
+        ViewCompat.setOnApplyWindowInsetsListener(root, (view, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+            );
+
+            view.setPadding(
+                    initialLeft + insets.left,
+                    initialTop + insets.top,
+                    initialRight + insets.right,
+                    initialBottom + insets.bottom
+            );
+
+            return windowInsets;
+        });
+
         Button btnAddCategory = findViewById(R.id.btnAddCategory);
         ListView listCategories = findViewById(R.id.listCategories);
         Button btnSortCategories = findViewById(R.id.btnSortCategories);
 
         databaseHelper = new DatabaseHelper(this);
+
+        PhotoCleanupManager.runIfNeeded(this, databaseHelper);
         android.content.SharedPreferences preferences =
                 getSharedPreferences("MyReviewsSettings", MODE_PRIVATE);
 
@@ -44,11 +77,14 @@ public class MainActivity extends AppCompatActivity {
 
         categories = new ArrayList<>();
         categoryIds = new ArrayList<>();
+        productCounts = new ArrayList<>();
+        categoryIcons = new ArrayList<>();
 
-        adapter = new ArrayAdapter<>(
+        adapter = new CategoryAdapter(
                 this,
-                android.R.layout.simple_list_item_1,
-                categories
+                categories,
+                productCounts,
+                categoryIcons
         );
 
         listCategories.setAdapter(adapter);
@@ -113,37 +149,86 @@ public class MainActivity extends AppCompatActivity {
                     .setTitle(categoryName)
                     .setItems(options, (dialog, which) -> {
 
+
                         if (which == 0) {
-                            // Переименование категории
                             EditText input = new EditText(MainActivity.this);
                             input.setText(categoryName);
                             input.setSingleLine(true);
                             input.setSelection(categoryName.length());
 
+                            String[] icons = {
+                                    "🛒", "🥤", "🌭", "🍬",
+                                    "🧀", "🥐", "☕", "🥛",
+                                    "🍫", "🍎", "🍕", "🍦",
+                                    "🥩", "🐟", "🥚", "🍞"
+                            };
+
+                            int currentIconPosition =
+                                    icons.length - 1;
+
+                            String currentIcon = categoryIcons.get(position);
+
+                            for (int i = 0; i < icons.length; i++) {
+                                if (icons[i].equals(currentIcon)) {
+                                    currentIconPosition = i;
+                                    break;
+                                }
+                            }
+
+                            android.widget.Spinner iconSpinner =
+                                    new android.widget.Spinner(MainActivity.this);
+
+                            ArrayAdapter<String> iconAdapter =
+                                    new ArrayAdapter<>(
+                                            MainActivity.this,
+                                            android.R.layout.simple_spinner_item,
+                                            icons
+                                    );
+
+                            iconAdapter.setDropDownViewResource(
+                                    android.R.layout.simple_spinner_dropdown_item
+                            );
+
+                            iconSpinner.setAdapter(iconAdapter);
+                            iconSpinner.setSelection(currentIconPosition);
+
+                            android.widget.LinearLayout layout =
+                                    new android.widget.LinearLayout(MainActivity.this);
+
+                            layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+
+                            int padding = (int) (20 * getResources()
+                                    .getDisplayMetrics().density);
+
+                            layout.setPadding(padding, padding / 2, padding, 0);
+                            layout.addView(input);
+                            layout.addView(iconSpinner);
+
                             new AlertDialog.Builder(MainActivity.this)
-                                    .setTitle("Переименовать категорию")
-                                    .setView(input)
+                                    .setTitle("Изменить категорию")
+                                    .setView(layout)
                                     .setPositiveButton("Сохранить", (d, w) -> {
-
-                                        String newName = input.getText().toString().trim();
-
+                                        String newName =
+                                                input.getText().toString().trim();
 
                                         if (newName.isEmpty()) {
+                                            Toast.makeText(
+                                                    MainActivity.this,
+                                                    "Введи название категории",
+                                                    Toast.LENGTH_SHORT
+                                            ).show();
                                             return;
                                         }
 
-                                        if (newName.equalsIgnoreCase(categoryName)) {
-                                            return;
-                                        }
+                                        String newIcon = icons[
+                                                iconSpinner.getSelectedItemPosition()
+                                                ];
 
-                                        long result = databaseHelper.renameCategory(
-                                                categoryId, newName
+                                        int result = databaseHelper.updateCategory(
+                                                categoryId,
+                                                newName,
+                                                newIcon
                                         );
-                                        Toast.makeText(
-                                                MainActivity.this,
-                                                "ID категории: " + categoryId + ", результат SQLite: " + result,
-                                                Toast.LENGTH_LONG
-                                        ).show();
 
                                         if (result == -1) {
                                             Toast.makeText(
@@ -154,14 +239,15 @@ public class MainActivity extends AppCompatActivity {
                                         } else if (result == 0) {
                                             Toast.makeText(
                                                     MainActivity.this,
-                                                    "Не удалось переименовать категорию",
+                                                    "Изменения не сохранены",
                                                     Toast.LENGTH_SHORT
                                             ).show();
                                         } else {
                                             loadCategories();
+
                                             Toast.makeText(
                                                     MainActivity.this,
-                                                    "Категория переименована",
+                                                    "Категория обновлена",
                                                     Toast.LENGTH_SHORT
                                             ).show();
                                         }
@@ -169,7 +255,8 @@ public class MainActivity extends AppCompatActivity {
                                     .setNegativeButton("Отмена", null)
                                     .show();
 
-                        } else if (which == 1) {
+
+                    } else if (which == 1) {
                             // Удаление категории
                             new AlertDialog.Builder(MainActivity.this)
                                     .setTitle("Удалить категорию?")
@@ -212,9 +299,14 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
     private void loadCategories() {
         categories.clear();
         categoryIds.clear();
+        productCounts.clear();
+        categoryIcons.clear();
+
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
 
         try (Cursor cursor = databaseHelper.getCategories(categorySortOrder)) {
             while (cursor.moveToNext()) {
@@ -226,24 +318,83 @@ public class MainActivity extends AppCompatActivity {
                         cursor.getColumnIndexOrThrow("name")
                 );
 
-                categoryIds.add(id);
+                String icon = cursor.getString(
+                        cursor.getColumnIndexOrThrow("icon")
+                );
+
                 categories.add(name);
+                categoryIds.add(id);
+                categoryIcons.add(icon);
+
+                int count = 0;
+
+                try (Cursor countCursor = db.rawQuery(
+                        "SELECT COUNT(*) FROM products WHERE category_id = ?",
+                        new String[]{String.valueOf(id)}
+                )) {
+                    if (countCursor.moveToFirst()) {
+                        count = countCursor.getInt(0);
+                    }
+                }
+
+                productCounts.add(count);
             }
         }
 
         adapter.notifyDataSetChanged();
     }
 
+
+
     private void showAddCategoryDialog() {
         EditText input = new EditText(this);
-        input.setHint("Например, Квасы");
+        input.setHint("Например, Сыры");
         input.setSingleLine(true);
+
+        String[] icons = {
+                "🛒", "🥤", "🌭", "🍬",
+                "🧀", "🥐", "☕", "🥛",
+                "🍫", "🍎", "🍕", "🍦",
+                "🥩", "🐟", "🥚", "🍞"
+        };
+
+        final String[] selectedIcon = {"🛒"};
+
+        android.widget.Spinner iconSpinner =
+                new android.widget.Spinner(this);
+
+        ArrayAdapter<String> iconAdapter =
+                new ArrayAdapter<>(
+                        this,
+                        android.R.layout.simple_spinner_item,
+                        icons
+                );
+
+        iconAdapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item
+        );
+
+        iconSpinner.setAdapter(iconAdapter);
+
+        android.widget.LinearLayout layout =
+                new android.widget.LinearLayout(this);
+
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+
+        int padding = (int) (20 * getResources()
+                .getDisplayMetrics().density);
+
+        layout.setPadding(padding, padding / 2, padding, 0);
+
+        layout.addView(input);
+        layout.addView(iconSpinner);
 
         new AlertDialog.Builder(this)
                 .setTitle("Новая категория")
-                .setView(input)
+                .setView(layout)
                 .setPositiveButton("Создать", (dialog, which) -> {
-                    String name = input.getText().toString().trim();
+                    String name = input.getText()
+                            .toString().trim();
 
                     if (name.isEmpty()) {
                         Toast.makeText(
@@ -254,7 +405,13 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
 
-                    long result = databaseHelper.addCategory(name);
+                    String icon = icons[
+                            iconSpinner.getSelectedItemPosition()
+                            ];
+
+                    long result = databaseHelper.addCategory(
+                            name, icon
+                    );
 
                     if (result == -1) {
                         Toast.makeText(
@@ -276,6 +433,7 @@ public class MainActivity extends AppCompatActivity {
                 .setNegativeButton("Отмена", null)
                 .show();
     }
+
 
     @Override
     protected void onResume() {

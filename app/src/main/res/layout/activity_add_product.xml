@@ -1,63 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollViewProduct"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:clipToPadding="false">
 
     <LinearLayout
+        android:id="@+id/product_main"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="20dp">
+
+        <!-- Название товара -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:text="Название товара"
+            android:textColor="#D0BCFF"
+            android:textSize="14sp" />
 
         <EditText
             android:id="@+id/etProductName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="28dp"
-            android:hint="Название товара"
-            android:inputType="textCapSentences" />
+            android:background="@drawable/edit_text_background"
+            android:hint="Например, Черноголовка"
+            android:inputType="textCapSentences"
+            android:minHeight="56dp"
+            android:padding="14dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#AAA4B2"
+            android:textSize="18sp" />
+
+        <!-- Оценка товара -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="6dp"
+            android:text="Оценка от 1 до 10"
+            android:textColor="#D0BCFF"
+            android:textSize="14sp" />
 
         <EditText
             android:id="@+id/etRating"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Оценка от 1 до 10"
-            android:inputType="number" />
+            android:background="@drawable/edit_text_background"
+            android:hint="Например, 8"
+            android:inputType="number"
+            android:minHeight="56dp"
+            android:padding="14dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#AAA4B2"
+            android:textSize="18sp" />
 
-        <EditText
-            android:id="@+id/etReview"
+        <!-- Фотография товара -->
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Твой отзыв"
-            android:gravity="top"
-            android:minLines="3"
-            android:inputType="textCapSentences|textMultiLine" />
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="Фотография товара"
+            android:textColor="#D0BCFF"
+            android:textSize="14sp" />
+
+        <ImageView
+            android:id="@+id/ivProductPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:background="@drawable/photo_placeholder"
+            android:src="@drawable/ic_photo_placeholder"
+            android:contentDescription="Фотография товара"
+            android:scaleType="fitCenter"
+            android:padding="8dp" />
 
         <Button
             android:id="@+id/btnChoosePhoto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Выбрать фотографию" />
+            android:layout_marginTop="10dp"
+            android:text="Выбрать фотографию"
+            android:textAllCaps="false" />
 
-        <ImageView
-            android:id="@+id/ivProductPhoto"
+        <!-- Отзыв -->
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_marginTop="8dp"
-            android:contentDescription="Фотография товара"
-            android:scaleType="fitCenter" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="6dp"
+            android:text="Мой отзыв"
+            android:textColor="#D0BCFF"
+            android:textSize="14sp" />
 
+        <EditText
+            android:id="@+id/etReview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/edit_text_background"
+            android:gravity="top|start"
+            android:hint="Что понравилось или не понравилось?"
+            android:inputType="textCapSentences|textMultiLine"
+            android:minHeight="120dp"
+            android:padding="14dp"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#AAA4B2"
+            android:textSize="16sp" />
+
+        <!-- Сохранение -->
         <Button
             android:id="@+id/btnSaveProduct"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Сохранить товар" />
+            android:layout_marginTop="20dp"
+            android:text="Сохранить товар"
+            android:textAllCaps="false" />
 
+        <!-- Удаление -->
         <Button
             android:id="@+id/btnDeleteProduct"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Удалить товар" />
+            android:layout_marginTop="8dp"
+            android:backgroundTint="#393039"
+            android:textColor="#F28B82"
+            android:text="Удалить товар"
+            android:textAllCaps="false" />
 
     </LinearLayout>
 </ScrollView>
