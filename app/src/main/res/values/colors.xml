@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Основные цвета светлой темы -->
+    <color name="light_background">#F7F5FA</color>
+    <color name="light_surface">#FFFFFF</color>
+    <color name="light_text_primary">#292633</color>
+    <color name="light_text_secondary">#777180</color>
+    <color name="light_border">#E8E3EF</color>
+
+    <!-- Фиолетовые акценты -->
+    <color name="accent_purple">#6850A4</color>
+    <color name="accent_purple_light">#D0BCFF</color>
+
+    <!-- Цвета для элементов -->
+    <color name="light_icon_background">#F0EAF8</color>
+    <color name="light_input_background">#FFFFFF</color>
+
+    <!-- Стандартные цвета -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="light_danger_background">#FCE8E6</color>
+    <color name="light_danger_text">#B3261E</color>
 </resources>

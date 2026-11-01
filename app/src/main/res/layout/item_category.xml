@@ -28,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Название категории"
-            android:textColor="#F3EFF7"
+            android:textColor="@color/light_text_primary"
             android:textSize="17sp"
             android:textStyle="bold" />
 
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="0 товаров"
-            android:textColor="#BDB6C7"
+            android:textColor="@color/light_text_secondary"
             android:textSize="13sp" />
 
     </LinearLayout>
@@ -48,7 +48,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:text="›"
-        android:textColor="#D0BCFF"
+        android:textColor="@color/accent_purple_light"
         android:textSize="30sp" />
 
 </LinearLayout>

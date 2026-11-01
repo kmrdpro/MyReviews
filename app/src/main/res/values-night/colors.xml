@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="light_background">#1C1B1F</color>
+    <color name="light_surface">#252329</color>
+    <color name="light_text_primary">#F3EFF7</color>
+    <color name="light_text_secondary">#BDB6C7</color>
+    <color name="light_border">#403A49</color>
+
+    <color name="accent_purple">#6850A4</color>
+    <color name="accent_purple_light">#D0BCFF</color>
+
+    <color name="light_icon_background">#393044</color>
+    <color name="light_input_background">#252329</color>
+
+    <color name="light_danger_background">#442A2A</color>
+    <color name="light_danger_text">#F28B82</color>
+</resources>

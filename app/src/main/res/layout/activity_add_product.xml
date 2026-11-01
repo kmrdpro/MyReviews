@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="6dp"
             android:text="Название товара"
-            android:textColor="#D0BCFF"
+            android:textColor="@color/accent_purple"
             android:textSize="14sp" />
 
         <EditText
@@ -34,8 +34,8 @@
             android:inputType="textCapSentences"
             android:minHeight="56dp"
             android:padding="14dp"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#AAA4B2"
+            android:textColor="@color/light_text_primary"
+            android:textColorHint="@color/light_text_secondary"
             android:textSize="18sp" />
 
         <!-- Оценка товара -->
@@ -45,21 +45,31 @@
             android:layout_marginTop="16dp"
             android:layout_marginBottom="6dp"
             android:text="Оценка от 1 до 10"
-            android:textColor="#D0BCFF"
+            android:textColor="@color/accent_purple"
             android:textSize="14sp" />
 
-        <EditText
-            android:id="@+id/etRating"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/edit_text_background"
-            android:hint="Например, 8"
-            android:inputType="number"
-            android:minHeight="56dp"
-            android:padding="14dp"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#AAA4B2"
-            android:textSize="18sp" />
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <LinearLayout
+                android:id="@+id/ratingNumbersContainer"
+                android:layout_width="match_parent"
+                android:layout_height="16dp"
+                android:orientation="horizontal"
+                android:weightSum="10" />
+
+            <LinearLayout
+                android:id="@+id/ratingStarsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:weightSum="10" />
+
+        </LinearLayout>
 
         <!-- Фотография товара -->
         <TextView
@@ -68,7 +78,7 @@
             android:layout_marginTop="20dp"
             android:layout_marginBottom="8dp"
             android:text="Фотография товара"
-            android:textColor="#D0BCFF"
+            android:textColor="@color/accent_purple"
             android:textSize="14sp" />
 
         <ImageView
@@ -96,7 +106,7 @@
             android:layout_marginTop="20dp"
             android:layout_marginBottom="6dp"
             android:text="Мой отзыв"
-            android:textColor="#D0BCFF"
+            android:textColor="@color/accent_purple"
             android:textSize="14sp" />
 
         <EditText
@@ -109,8 +119,8 @@
             android:inputType="textCapSentences|textMultiLine"
             android:minHeight="120dp"
             android:padding="14dp"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#AAA4B2"
+            android:textColor="@color/light_text_primary"
+            android:textColorHint="@color/light_text_secondary"
             android:textSize="16sp" />
 
         <!-- Сохранение -->
@@ -128,8 +138,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:backgroundTint="#393039"
-            android:textColor="#F28B82"
+            android:backgroundTint="@color/light_danger_background"
+            android:textColor="@color/light_danger_text"
             android:text="Удалить товар"
             android:textAllCaps="false" />
 

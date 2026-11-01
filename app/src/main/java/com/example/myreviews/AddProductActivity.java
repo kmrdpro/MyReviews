@@ -1,4 +1,3 @@
-
 package com.example.myreviews;
 
 import android.app.Activity;
@@ -14,6 +13,8 @@ import android.app.Dialog;
 import android.graphics.Color;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.github.chrisbanes.photoview.PhotoView;
 
@@ -33,7 +34,9 @@ import java.io.InputStream;
 public class AddProductActivity extends AppCompatActivity {
 
     private EditText etProductName;
-    private EditText etRating;
+    private LinearLayout ratingNumbersContainer;
+    private LinearLayout ratingStarsContainer;
+    private int selectedRating = 5;
     private EditText etReview;
     private ImageView ivProductPhoto;
     private Button btnSaveProduct;
@@ -61,47 +64,6 @@ public class AddProductActivity extends AppCompatActivity {
         final int initialScrollRight = scrollView.getPaddingRight();
         final int initialScrollBottom = scrollView.getPaddingBottom();
 
-        ViewCompat.setOnApplyWindowInsetsListener(scrollView, (view, windowInsets) -> {
-            Insets systemBars = windowInsets.getInsets(
-                    WindowInsetsCompat.Type.systemBars()
-            );
-
-            Insets ime = windowInsets.getInsets(
-                    WindowInsetsCompat.Type.ime()
-            );
-
-            view.setPadding(
-                    initialScrollLeft + systemBars.left,
-                    initialScrollTop + systemBars.top,
-                    initialScrollRight + systemBars.right,
-                    initialScrollBottom + Math.max(systemBars.bottom, ime.bottom)
-            );
-
-            return windowInsets;
-        });
-
-
-//        View root = findViewById(R.id.product_main);
-
-//        int initialLeft = root.getPaddingLeft();
-//        int initialTop = root.getPaddingTop();
-//        int initialRight = root.getPaddingRight();
-//        int initialBottom = root.getPaddingBottom();
-
-//        ViewCompat.setOnApplyWindowInsetsListener(root, (view, windowInsets) -> {
-//            Insets insets = windowInsets.getInsets(
-//                    WindowInsetsCompat.Type.systemBars()
-//            );
-//
-//            view.setPadding(
-//                    initialLeft + insets.left,
-//                    initialTop + insets.top,
-//                    initialRight + insets.right,
-//                    initialBottom + insets.bottom
-//            );
-//
-//            return windowInsets;
-//        });
 
         categoryId = getIntent().getLongExtra("category_id", -1);
         productId = getIntent().getLongExtra("product_id", -1);
@@ -116,43 +78,14 @@ public class AddProductActivity extends AppCompatActivity {
         databaseHelper = new DatabaseHelper(this);
 
         etProductName = findViewById(R.id.etProductName);
-        etRating = findViewById(R.id.etRating);
+        ratingStarsContainer = findViewById(R.id.ratingStarsContainer);
+        ratingNumbersContainer = findViewById(R.id.ratingNumbersContainer);
+
+        createRatingStars();
+
         etReview = findViewById(R.id.etReview);
         ivProductPhoto = findViewById(R.id.ivProductPhoto);
 
-
-
-        final View rootView = findViewById(android.R.id.content);
-
-        rootView.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
-            android.graphics.Rect visibleRect =
-                    new android.graphics.Rect();
-
-            rootView.getWindowVisibleDisplayFrame(visibleRect);
-
-            int screenHeight = rootView.getRootView().getHeight();
-            int visibleHeight = visibleRect.height();
-
-            boolean keyboardVisible =
-                    screenHeight - visibleHeight > screenHeight * 0.20;
-
-            if (keyboardVisible && etReview.hasFocus()) {
-                rootView.postDelayed(() -> {
-                    android.graphics.Rect fieldRect =
-                            new android.graphics.Rect();
-
-                    etReview.getGlobalVisibleRect(fieldRect);
-
-                    if (fieldRect.bottom > visibleRect.bottom
-                            || fieldRect.top > visibleRect.bottom) {
-                        scrollView.smoothScrollBy(
-                                0,
-                                etReview.getHeight() + 40
-                        );
-                    }
-                }, 100);
-            }
-        });
 
 
         ivProductPhoto.setOnClickListener(v -> showPhotoFullScreen());
@@ -171,6 +104,56 @@ public class AddProductActivity extends AppCompatActivity {
 
             btnDeleteProduct.setOnClickListener(v -> confirmDeleteProduct());
         }
+
+        final boolean[] wasKeyboardVisible = {false};
+
+        ViewCompat.setOnApplyWindowInsetsListener(scrollView, (view, windowInsets) -> {
+
+            Insets systemBars = windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+            );
+
+            Insets ime = windowInsets.getInsets(
+                    WindowInsetsCompat.Type.ime()
+            );
+
+            boolean keyboardVisible = windowInsets.isVisible(
+                    WindowInsetsCompat.Type.ime()
+            );
+
+            view.setPadding(
+                    initialScrollLeft + systemBars.left,
+                    initialScrollTop + systemBars.top,
+                    initialScrollRight + systemBars.right,
+                    initialScrollBottom + Math.max(systemBars.bottom, ime.bottom)
+            );
+
+            // Клавиатура только что появилась, а отзыв находится в фокусе.
+            if (keyboardVisible && !wasKeyboardVisible[0]
+                    && etReview != null && etReview.hasFocus()) {
+
+                view.post(() -> {
+
+                    View targetButton;
+
+                    if (btnDeleteProduct.getVisibility() == View.VISIBLE) {
+                        targetButton = btnDeleteProduct;
+                    } else {
+                        targetButton = btnSaveProduct;
+                    }
+
+                    scrollView.smoothScrollTo(
+                            0,
+                            targetButton.getBottom()
+                    );
+                });
+            }
+
+            wasKeyboardVisible[0] = keyboardVisible;
+
+            return windowInsets;
+        });
+
 
         photoPicker = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
@@ -202,6 +185,82 @@ public class AddProductActivity extends AppCompatActivity {
         }
     }
 
+    private void createRatingStars() {
+
+        ratingStarsContainer.removeAllViews();
+        ratingNumbersContainer.removeAllViews();
+
+        for (int i = 1; i <= 10; i++) {
+
+            final int starNumber = i;
+
+            // Создаём цифру над звездой
+            TextView number = new TextView(this);
+
+            number.setText(String.valueOf(i));
+            number.setTextSize(14);
+            number.setTypeface(null, android.graphics.Typeface.BOLD);
+            number.setGravity(android.view.Gravity.CENTER);
+            number.setTextColor(getColor(R.color.light_text_secondary));
+
+            number.setOnClickListener(v -> {
+                selectedRating = starNumber;
+                updateRatingStars();
+            });
+
+            LinearLayout.LayoutParams numberParams =
+                    new LinearLayout.LayoutParams(
+                            0,
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            1f
+                    );
+
+            number.setLayoutParams(numberParams);
+            ratingNumbersContainer.addView(number);
+
+            // Создаём звезду
+            TextView star = new TextView(this);
+
+            star.setTextSize(24);
+            star.setGravity(android.view.Gravity.CENTER);
+            star.setPadding(0, 0, 0, 0);
+
+            LinearLayout.LayoutParams starParams =
+                    new LinearLayout.LayoutParams(
+                            0,
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            1f
+                    );
+
+            star.setLayoutParams(starParams);
+
+            star.setOnClickListener(v -> {
+                selectedRating = starNumber;
+                updateRatingStars();
+            });
+
+            ratingStarsContainer.addView(star);
+        }
+
+        updateRatingStars();
+    }
+
+    private void updateRatingStars() {
+
+        for (int i = 0; i < ratingStarsContainer.getChildCount(); i++) {
+
+            TextView star = (TextView) ratingStarsContainer.getChildAt(i);
+
+            if (i < selectedRating) {
+                star.setText("★");
+                star.setTextColor(Color.rgb(204, 102, 0));
+            } else {
+                star.setText("☆");
+                star.setTextColor(Color.rgb(217, 210, 200));
+            }
+        }
+    }
+
     private void loadProduct() {
         try (Cursor cursor = databaseHelper.getProduct(productId)) {
             if (cursor.moveToFirst()) {
@@ -213,9 +272,11 @@ public class AddProductActivity extends AppCompatActivity {
                         cursor.getColumnIndexOrThrow("name")
                 ));
 
-                etRating.setText(String.valueOf(cursor.getInt(
+                selectedRating = cursor.getInt(
                         cursor.getColumnIndexOrThrow("rating")
-                )));
+                );
+
+                updateRatingStars();
 
                 etReview.setText(cursor.getString(
                         cursor.getColumnIndexOrThrow("review")
@@ -369,7 +430,6 @@ public class AddProductActivity extends AppCompatActivity {
 
     private void saveProduct() {
         String name = etProductName.getText().toString().trim();
-        String ratingText = etRating.getText().toString().trim();
         String review = etReview.getText().toString().trim();
 
         if (name.isEmpty()) {
@@ -377,24 +437,7 @@ public class AddProductActivity extends AppCompatActivity {
             return;
         }
 
-        if (ratingText.isEmpty()) {
-            etRating.setError("Введи оценку от 1 до 10");
-            return;
-        }
-
-        int rating;
-
-        try {
-            rating = Integer.parseInt(ratingText);
-        } catch (NumberFormatException e) {
-            etRating.setError("Введи целое число от 1 до 10");
-            return;
-        }
-
-        if (rating < 1 || rating > 10) {
-            etRating.setError("Оценка должна быть от 1 до 10");
-            return;
-        }
+        int rating = selectedRating;
 
         long result;
 

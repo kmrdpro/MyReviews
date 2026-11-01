@@ -1,56 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:padding="10dp"
+    android:orientation="vertical"
+    android:padding="8dp"
     android:background="@drawable/product_card_background">
+
 
     <ImageView
         android:id="@+id/ivProductThumbnail"
-        android:layout_width="76dp"
-        android:layout_height="76dp"
-        android:scaleType="centerCrop"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="false"
+        android:padding="6dp"
         android:contentDescription="Фото товара"
-        android:background="#39343F" />
+        android:background="@color/light_icon_background" />
+
+
+    <TextView
+        android:id="@+id/tvProductName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Название товара"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/light_text_primary"
+        android:maxLines="2"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/tvProductRating"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:text="Оценка: 7/10"
+        android:textColor="#F6C86A"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end" />
 
     <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:layout_marginStart="14dp">
-
-        <TextView
-            android:id="@+id/tvProductName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Название товара"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="#F3EFF7"
-            android:maxLines="2"
-            android:ellipsize="end" />
-
-        <TextView
-            android:id="@+id/tvProductRating"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:text="Оценка: 7/10"
-            android:textColor="#F6C86A"
-            android:textSize="17sp"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:id="@+id/ratingBar"
-            android:layout_width="match_parent"
-            android:layout_height="5dp"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal"
-            android:weightSum="10" />
-
-    </LinearLayout>
+        android:id="@+id/ratingBar"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:layout_marginTop="7dp"
+        android:orientation="horizontal"
+        android:weightSum="10" />
 
 </LinearLayout>

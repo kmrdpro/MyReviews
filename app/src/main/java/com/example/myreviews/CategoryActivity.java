@@ -4,13 +4,16 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
+import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.app.AlertDialog;
 import java.io.File;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.widget.EditText;
+import java.util.Locale;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -26,6 +29,7 @@ public class CategoryActivity extends AppCompatActivity {
     private long categoryId;
 
     private ArrayList<Product> products;
+    private ArrayList<Product> allProducts;
     private ProductAdapter adapter;
 
     @Override
@@ -57,7 +61,8 @@ public class CategoryActivity extends AppCompatActivity {
 
         TextView tvCategoryTitle = findViewById(R.id.tvCategoryTitle);
         Button btnAddProduct = findViewById(R.id.btnAddProduct);
-        ListView listProducts = findViewById(R.id.listProducts);
+        GridView listProducts = findViewById(R.id.listProducts);
+        EditText etSearchProduct = findViewById(R.id.etSearchProduct);
         Button btnSortProducts = findViewById(R.id.btnSortProducts);
 
         btnSortProducts.setOnClickListener(v -> {
@@ -123,10 +128,11 @@ public class CategoryActivity extends AppCompatActivity {
 
         databaseHelper = new DatabaseHelper(this);
 
+        allProducts = new ArrayList<>();
         products = new ArrayList<>();
+
         adapter = new ProductAdapter(this, products);
         listProducts.setAdapter(adapter);
-
 
         listProducts.setOnItemClickListener((parent, view, position, id) -> {
             Product product = products.get(position);
@@ -140,6 +146,62 @@ public class CategoryActivity extends AppCompatActivity {
             intent.putExtra("product_id", product.getId());
 
             startActivity(intent);
+        });
+
+        etSearchProduct.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterProducts(s.toString());
+
+                if (s.length() > 0) {
+                    etSearchProduct.setCompoundDrawablesWithIntrinsicBounds(
+                            android.R.drawable.ic_menu_search,
+                            0,
+                            android.R.drawable.ic_menu_close_clear_cancel,
+                            0
+                    );
+                } else {
+                    etSearchProduct.setCompoundDrawablesWithIntrinsicBounds(
+                            android.R.drawable.ic_menu_search,
+                            0,
+                            0,
+                            0
+                    );
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
+        etSearchProduct.setCompoundDrawablesWithIntrinsicBounds(
+                android.R.drawable.ic_menu_search,
+                0,
+                0,
+                0
+        );
+
+        etSearchProduct.setOnTouchListener((view, event) -> {
+            if (event.getAction() == android.view.MotionEvent.ACTION_UP) {
+                android.graphics.drawable.Drawable clearIcon =
+                        etSearchProduct.getCompoundDrawables()[2];
+
+                if (clearIcon != null &&
+                        event.getX() >= etSearchProduct.getWidth()
+                                - etSearchProduct.getPaddingRight()
+                                - clearIcon.getBounds().width()) {
+
+                    etSearchProduct.setText("");
+                    return true;
+                }
+            }
+            return false;
         });
 
 
@@ -211,33 +273,34 @@ public class CategoryActivity extends AppCompatActivity {
     }
 
     private void loadProducts() {
-        products.clear();
+        allProducts.clear();
 
         try (Cursor cursor = databaseHelper.getProducts(categoryId, productSortOrder)) {
             while (cursor.moveToNext()) {
-                long id = cursor.getLong(
-                        cursor.getColumnIndexOrThrow("id"));
+                long id = cursor.getLong(cursor.getColumnIndexOrThrow("id"));
+                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                int rating = cursor.getInt(cursor.getColumnIndexOrThrow("rating"));
+                String review = cursor.getString(cursor.getColumnIndexOrThrow("review"));
+                String photoPath = cursor.getString(cursor.getColumnIndexOrThrow("photo_path"));
 
-                String name = cursor.getString(
-                        cursor.getColumnIndexOrThrow("name"));
+                allProducts.add(new Product(id, categoryId, name, rating, review, photoPath));
+            }
+        }
 
-                int rating = cursor.getInt(
-                        cursor.getColumnIndexOrThrow("rating"));
+        EditText etSearchProduct = findViewById(R.id.etSearchProduct);
+        filterProducts(etSearchProduct.getText().toString());
+    }
 
-                String review = cursor.getString(
-                        cursor.getColumnIndexOrThrow("review"));
+    private void filterProducts(String query) {
+        products.clear();
 
-                String photoPath = cursor.getString(
-                        cursor.getColumnIndexOrThrow("photo_path"));
+        String searchText = query.trim().toLowerCase(Locale.ROOT);
 
-                products.add(new Product(
-                        id,
-                        categoryId,
-                        name,
-                        rating,
-                        review,
-                        photoPath
-                ));
+        for (Product product : allProducts) {
+            String productName = product.getName().toLowerCase(Locale.ROOT);
+
+            if (productName.contains(searchText)) {
+                products.add(product);
             }
         }
 
